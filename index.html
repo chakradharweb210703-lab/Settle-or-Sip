@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<title>Settle or SIP — Should you prepay your loan or invest?</title>
+<meta name="description" content="Free calculator: Should you prepay your home loan or invest in SIP? Personalised verdict based on your tax regime, RBI rates, and risk profile."/>
+
+<!-- ── FONTS ── -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+<!-- ── jsPDF (client-side PDF generation, no account needed) ── -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!--
+  ════════════════════════════════════════════════════════════
+  GOOGLE ADSENSE — ACTION REQUIRED BEFORE GOING LIVE
+  ════════════════════════════════════════════════════════════
+  1. Apply at adsense.google.com (free)
+  2. Once approved, replace XXXXXXXXXXXXXXXX with your Publisher ID
+  3. Uncomment the script tag below
+  ════════════════════════════════════════════════════════════
+-->
+<!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script> -->
+
+<style>
+/* ── DESIGN TOKENS ── */
+:root {
+  --accent:       #2DD4BF;
+  --accent-soft:  rgba(45,212,191,0.10);
+  --accent-dim:   rgba(45,212,191,0.06);
+  --bg:           #030712;
+  --surface:      #0f172a;
+  --surface-win:  #1e293b;
+  --input-bg:     #0B1120;
+  --text:         #f8fafc;
+  --muted:        #94a3b8;
+  --border:       rgba(255,255,255,0.06);
+  --border-input: rgba(255,255,255,0.10);
+  --green:        #22C55E;
+  --amber:        #F59E0B;
+  --red:          #EF4444;
+
+  /* JS-compat aliases */
+  --bg-dark:           var(--bg);
+  --bg-light:          var(--input-bg);
+  --surface-dark:      var(--surface);
+  --surface-light:     var(--surface);
+  --text-dark:         var(--text);
+  --text-dark-muted:   var(--muted);
+  --text-light:        var(--text);
+  --text-light-muted:  var(--muted);
+  --border-dark:       var(--border);
+  --border-light:      var(--border);
+  --accent-glow:       transparent;
+  --font-display:      'Inter', sans-serif;
+  --font-heading:      'Inter', sans-serif;
+  --font-body:         'Inter', sans-serif;
+  --header-h:          60px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; scroll-snap-type: y proximity; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
+}
+
+/* ── PROGRESS BAR ── */
+#scrollProgressBar {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 3px;
+  background: var(--accent);
+  transform-origin: left;
+  transform: scaleX(0);
+  z-index: 300;
+  transition: transform 0.08s linear;
+}
+
+/* ── HEADER ── */
+.glass-header {
+  position: fixed; top: 3px; left: 0; right: 0;
+  height: var(--header-h);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 clamp(16px,4vw,40px);
+  z-index: 100;
+  transition: background 0.3s, border-color 0.3s;
+  border-bottom: 1px solid transparent;
+}
+.glass-header.scrolled { background: var(--bg); border-bottom-color: var(--border); }
+.glass-header.over-light,
+.glass-header.over-light.scrolled { color: var(--text); background: var(--bg); border-bottom-color: var(--border); }
+.header-logo {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; text-decoration: none; color: var(--accent);
+}
+.header-nav { display: flex; gap: 24px; align-items: center; }
+.header-nav a {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+  color: var(--muted); text-decoration: none; transition: color 0.2s;
+}
+.header-nav a:hover { color: var(--text); }
+
+/* ── HERO ── */
+.hero-section {
+  min-height: 100vh; display: flex; flex-direction: column;
+  justify-content: center; align-items: center; text-align: center;
+  padding: calc(var(--header-h) + 48px) clamp(20px,5vw,48px) 80px;
+  position: relative; overflow: hidden; background: var(--bg);
+  scroll-snap-align: start;
+}
+.hero-headline {
+  font-size: clamp(48px,11vw,104px); font-weight: 700;
+  line-height: 0.94; letter-spacing: -0.03em; text-transform: uppercase;
+  color: var(--text); max-width: 880px; margin-bottom: 28px;
+}
+.hero-headline .accent { color: var(--accent); }
+.hero-sub {
+  font-size: clamp(14px,2vw,17px); color: var(--muted);
+  max-width: 460px; line-height: 1.7; margin: 0 auto 48px;
+}
+.hero-stats {
+  display: flex; gap: clamp(24px,5vw,56px);
+  margin-bottom: 52px; flex-wrap: wrap; justify-content: center;
+}
+.hero-stat { text-align: center; }
+.hero-stat-num {
+  font-size: clamp(34px,6vw,52px); font-weight: 700;
+  letter-spacing: -0.04em; color: var(--accent); line-height: 1;
+}
+.hero-stat-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted); margin-top: 6px;
+}
+.hero-cta {
+  padding: 15px 44px; background: var(--accent); color: #030712;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.06em;
+  border: none; border-radius: 2px; cursor: pointer; text-transform: uppercase;
+  box-shadow: 4px 4px 0 #000000; transition: box-shadow 0.12s, transform 0.12s; will-change: transform;
+}
+.hero-cta:hover { box-shadow: 2px 2px 0 #000000; transform: translate(1px,1px); }
+.scroll-hint {
+  position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted);
+  animation: bobDown 2s ease-in-out infinite;
+}
+@keyframes bobDown {
+  0%,100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(8px); }
+}
+
+/* ── AD SLOT STYLES ── */
+.ad-slot {
+  max-width: 560px; margin: 0 auto;
+  padding: 12px clamp(16px,5vw,40px);
+  text-align: center;
+}
+.ad-slot-inner {
+  background: var(--surface);
+  border: 1px dashed rgba(255,255,255,0.08);
+  border-radius: 2px; padding: 14px;
+  font-size: 11px; color: var(--muted);
+  letter-spacing: 0.06em; text-transform: uppercase;
+  min-height: 90px; display: flex; align-items: center; justify-content: center;
+}
+.ad-slot ins { border-radius: 2px; overflow: hidden; }
+
+/* ── PROBLEM SECTION ── */
+.problem-section {
+  background: var(--bg); padding: 100px 0 120px; scroll-snap-align: start;
+}
+.section-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--accent); text-align: center; margin-bottom: 14px;
+}
+.section-title {
+  font-size: clamp(32px,7vw,58px); font-weight: 700; line-height: 0.96;
+  text-transform: uppercase; letter-spacing: -0.03em; text-align: center;
+  max-width: 580px; margin: 0 auto 52px; padding: 0 24px;
+}
+.cards-vertical {
+  display: flex; flex-direction: column; gap: 10px;
+  max-width: 560px; margin: 0 auto; padding: 0 clamp(20px,5vw,40px);
+}
+.fact-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
+  padding: 26px; box-shadow: 4px 4px 0 #000000; transition: border-color 0.2s;
+}
+.fact-card:hover { border-color: rgba(45,212,191,0.25); }
+.fact-card-icon {
+  width: 34px; height: 34px; background: var(--accent-soft); color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; margin-bottom: 12px; border-radius: 2px;
+}
+.fact-card-num {
+  font-size: clamp(26px,4vw,38px); font-weight: 700; letter-spacing: -0.03em;
+  color: var(--accent); line-height: 1; margin-bottom: 8px;
+}
+.fact-card-text { font-size: 14px; color: var(--muted); line-height: 1.65; }
+
+/* ── CALCULATOR SECTION ── */
+.calc-section {
+  background: var(--bg); color: var(--text);
+  padding: 80px clamp(16px,5vw,40px) 100px;
+  min-height: 100vh; position: relative; scroll-snap-align: start;
+}
+.calc-inner { max-width: 560px; margin: 0 auto; }
+.calc-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--accent); text-align: center; margin-bottom: 12px;
+}
+.calc-title {
+  font-size: clamp(30px,6vw,52px); font-weight: 700; line-height: 0.96;
+  text-transform: uppercase; letter-spacing: -0.03em; text-align: center;
+  color: var(--text); margin-bottom: 44px;
+}
+
+/* STEP PROGRESS */
+.step-progress { display: flex; align-items: center; gap: 0; margin-bottom: 28px; }
+.step-dot {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0; transition: all 0.3s;
+  border: 1.5px solid var(--border); background: var(--surface); color: var(--muted);
+}
+.step-dot.active { background: var(--accent); color: #030712; border-color: var(--accent); }
+.step-dot.done   { background: var(--accent); color: #030712; border-color: var(--accent); opacity: 0.5; }
+.step-line       { flex: 1; height: 1px; background: var(--border); position: relative; overflow: hidden; }
+.step-line-fill  { position: absolute; top: 0; left: 0; height: 100%; background: var(--accent); transition: width 0.4s ease; }
+
+/* CALC CARD */
+.calc-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
+  padding: clamp(22px,5vw,34px); box-shadow: 4px 4px 0 #000000;
+}
+.calc-step-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 10px;
+}
+.calc-step-title {
+  font-size: clamp(19px,4vw,25px); font-weight: 700; letter-spacing: -0.03em;
+  line-height: 1.15; margin-bottom: 14px; color: var(--text);
+}
+.calc-step-desc {
+  font-size: 13px; line-height: 1.65; color: var(--muted); margin-bottom: 22px;
+  padding: 12px 14px; background: var(--accent-dim);
+  border-left: 2px solid var(--accent); border-radius: 0 2px 2px 0;
+}
+.calc-step-desc strong { color: var(--text); }
+
+/* FORM FIELDS */
+.field { margin-bottom: 16px; }
+.field label {
+  display: block; font-size: 10px; font-weight: 700; color: var(--muted);
+  margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.1em;
+}
+.field-opt { font-weight: 400; text-transform: none; letter-spacing: 0; opacity: 0.65; }
+.field input, .field select {
+  width: 100%; background: var(--input-bg); border: 1.5px solid var(--border-input);
+  border-radius: 2px; padding: 12px 13px;
+  font-size: 15px; font-family: 'Inter', sans-serif; font-weight: 500;
+  color: var(--text); outline: none; -webkit-appearance: none; appearance: none;
+  transition: border-color 0.15s;
+}
+.field input:focus, .field select:focus { border-color: var(--accent); }
+.field input::placeholder { color: rgba(255,255,255,0.18); }
+.field select option { background: var(--surface); color: var(--text); }
+.field-hint { font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* SEG TOGGLE */
+.seg-toggle-l {
+  display: flex; background: var(--input-bg); border: 1.5px solid var(--border);
+  border-radius: 2px; padding: 4px; gap: 4px; margin-bottom: 16px;
+}
+.seg-btn-l {
+  flex: 1; padding: 12px; border-radius: 2px; border: none;
+  background: transparent; color: var(--muted);
+  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+  cursor: pointer; text-align: center; transition: all 0.2s;
+}
+.seg-btn-l.active { background: var(--accent); color: #030712; }
+.seg-btn-l span { display: block; font-size: 10px; font-weight: 400; opacity: 0.75; margin-top: 2px; }
+
+/* BOOL TOGGLE */
+.bool-toggle-l {
+  display: flex; background: var(--input-bg); border: 1.5px solid var(--border);
+  border-radius: 2px; padding: 4px; gap: 4px; margin-top: 8px;
+}
+.bool-btn-l {
+  flex: 1; padding: 12px; border-radius: 2px; border: 1.5px solid transparent;
+  background: transparent; color: var(--muted);
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+  cursor: pointer; text-align: center; transition: all 0.2s;
+}
+.bool-btn-l.yes { background: rgba(34,197,94,0.10); color: var(--green); border-color: rgba(34,197,94,0.20); }
+.bool-btn-l.no  { background: rgba(239,68,68,0.08);  color: var(--red);   border-color: rgba(239,68,68,0.15); }
+
+/* LIFTED BUTTON */
+.btn-accent {
+  display: block; width: 100%; padding: 14px 24px; background: var(--accent);
+  color: #030712; font-family: 'Inter', sans-serif; font-size: 13px;
+  font-weight: 700; letter-spacing: 0.06em; border: none; border-radius: 2px;
+  cursor: pointer; margin-top: 18px; text-transform: uppercase;
+  box-shadow: 4px 4px 0 #000000; transition: box-shadow 0.12s, transform 0.12s; will-change: transform;
+}
+.btn-accent:hover { box-shadow: 2px 2px 0 #000000; transform: translate(1px,1px); }
+.btn-accent:active { box-shadow: inset 2px 2px 6px rgba(0,0,0,0.35); transform: scale(0.96); }
+.btn-ghost {
+  display: block; width: 100%; padding: 12px 24px; background: transparent;
+  color: var(--muted); font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+  border: 1.5px solid var(--border); border-radius: 2px; cursor: pointer;
+  margin-top: 8px; transition: border-color 0.2s, color 0.2s;
+}
+.btn-ghost:hover { border-color: rgba(255,255,255,0.14); color: var(--text); }
+
+/* ── RESULTS SECTION ── */
+.results-section {
+  background: var(--bg); color: var(--text);
+  padding: 0 clamp(16px,5vw,40px) 80px; scroll-snap-align: start;
+}
+.results-inner { max-width: 560px; margin: 0 auto; }
+
+@keyframes childReveal {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: none; }
+}
+#resultsPhase > * { opacity: 0; transform: translateY(28px); }
+#resultsPhase.revealed > * { animation: childReveal 0.55s cubic-bezier(0.16,1,0.3,1) both; }
+#resultsPhase.revealed > *:nth-child(1) { animation-delay: 0.04s; }
+#resultsPhase.revealed > *:nth-child(2) { animation-delay: 0.14s; }
+#resultsPhase.revealed > *:nth-child(3) { animation-delay: 0.22s; }
+#resultsPhase.revealed > *:nth-child(4) { animation-delay: 0.30s; }
+#resultsPhase.revealed > *:nth-child(5) { animation-delay: 0.37s; }
+#resultsPhase.revealed > *:nth-child(6) { animation-delay: 0.44s; }
+#resultsPhase.revealed > *:nth-child(7) { animation-delay: 0.50s; }
+#resultsPhase.revealed > *:nth-child(8) { animation-delay: 0.56s; }
+#resultsPhase.revealed > *:nth-child(9) { animation-delay: 0.62s; }
+@media (prefers-reduced-motion: reduce) {
+  #resultsPhase > * { opacity: 1 !important; transform: none !important; }
+  #resultsPhase.revealed > * { animation: none !important; }
+}
+
+.diagnosis-line {
+  font-size: 14px; line-height: 1.7; color: var(--muted); max-width: 440px; margin: 16px auto 0;
+}
+.diagnosis-line strong { color: var(--text); }
+
+.result-verdict-hero {
+  text-align: center; padding: 60px clamp(20px,5vw,44px) 48px;
+  border-bottom: 1px solid var(--border); margin-bottom: 24px;
+}
+.result-path-badge {
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 2px;
+  background: var(--accent); color: #030712; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 18px;
+}
+.result-date-hero {
+  font-size: clamp(52px,13vw,100px); font-weight: 700; letter-spacing: -0.04em;
+  color: var(--accent); line-height: 1; margin: 8px 0 12px;
+}
+.result-months-note { font-size: 15px; color: var(--muted); font-weight: 500; line-height: 1.5; }
+
+.path-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
+  padding: 20px; margin-bottom: 10px; box-shadow: 3px 3px 0 #000000;
+}
+.path-card.winner {
+  background: var(--surface-win); border-color: rgba(45,212,191,0.22);
+  padding: 26px; box-shadow: 5px 5px 0 #000000;
+}
+.path-head {
+  display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px;
+}
+.path-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.rec-chip {
+  margin-left: auto; font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--accent); background: var(--accent-soft);
+  padding: 3px 10px; border-radius: 2px;
+}
+.metrics-grid        { display: grid; gap: 14px; }
+.metrics-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.metrics-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.metric-label-r {
+  font-size: 10px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.08em; margin-bottom: 4px;
+}
+.metric-value-r    { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+.metric-value-r.accent { color: var(--accent); }
+.metric-value-lg-r { font-size: 24px; font-weight: 700; letter-spacing: -0.03em; color: var(--accent); }
+.wealth-divider    { border-top: 1px solid var(--border); padding-top: 14px; margin-top: 12px; }
+.band              { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 13px; }
+.band-label        { color: var(--muted); }
+.band-value        { font-weight: 600; letter-spacing: -0.01em; color: var(--text); }
+.band-value.accent { color: var(--accent); }
+
+.badge-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.badge-r {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px;
+  border-radius: 2px; font-size: 12px; font-weight: 600; line-height: 1.3;
+}
+.badge-r.warning { background: rgba(245,158,11,0.08); color: var(--amber); border: 1px solid rgba(245,158,11,0.15); }
+.badge-r.info    { background: var(--accent-soft); color: var(--accent);   border: 1px solid rgba(45,212,191,0.15); }
+
+.lump-box {
+  background: var(--accent-dim); border: 1px solid rgba(45,212,191,0.14); border-radius: 2px;
+  padding: 13px 15px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; color: var(--muted);
+}
+.lump-box strong { color: var(--accent); }
+
+.disclaimer {
+  background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 2px;
+  padding: 12px 14px; font-size: 12px; color: var(--muted); line-height: 1.65; margin: 18px 0;
+}
+.disclaimer strong { color: var(--text); }
+
+.expandable-r {
+  border: 1px solid var(--border); border-radius: 2px; overflow: hidden;
+  margin-bottom: 16px; background: var(--surface);
+}
+.exp-header-r {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; font-size: 13px; font-weight: 600; color: var(--accent);
+  border: none; background: transparent; width: 100%;
+  font-family: 'Inter', sans-serif; text-align: left; cursor: pointer; transition: background 0.2s;
+}
+.exp-header-r:hover { background: var(--accent-dim); }
+.exp-body-r    { padding: 0 16px 16px; display: none; }
+.rbi-row       { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.rbi-bar-wrap  { flex: 1; height: 5px; background: rgba(255,255,255,0.05); border-radius: 1px; overflow: hidden; }
+.rbi-bar-inner { height: 100%; border-radius: 1px; }
+
+.act-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.btn-act {
+  display: flex; align-items: center; justify-content: center; gap: 8px; padding: 13px;
+  border-radius: 2px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; border: 1px solid var(--border); transition: border-color 0.2s, transform 0.1s;
+  background: var(--surface); color: var(--muted); box-shadow: 3px 3px 0 #000000;
+  will-change: transform;
+}
+.btn-act.dl { background: var(--accent-dim); color: var(--accent); border-color: rgba(45,212,191,0.15); }
+.btn-act.dl:hover { border-color: rgba(45,212,191,0.3); }
+.btn-act.sh { color: var(--text); }
+.btn-act.sh:hover { border-color: rgba(255,255,255,0.12); }
+
+/* EMAIL / SUBSCRIBE */
+.email-box {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
+  padding: 20px; margin-bottom: 24px; box-shadow: 3px 3px 0 #000000;
+}
+.email-box h4 { font-size: 14px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 5px; color: var(--text); }
+.email-box p  { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+.email-row    { display: flex; gap: 8px; }
+.email-row input {
+  flex: 1; background: var(--input-bg); border: 1.5px solid var(--border);
+  border-radius: 2px; padding: 10px 12px;
+  font-size: 14px; font-family: 'Inter', sans-serif; color: var(--text); outline: none; min-width: 0;
+}
+.email-row input::placeholder { color: rgba(255,255,255,0.18); }
+.email-row input:focus        { border-color: var(--accent); }
+.email-row button {
+  padding: 10px 16px; background: var(--accent); color: #030712;
+  border: none; border-radius: 2px; font-family: 'Inter', sans-serif;
+  font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap;
+  box-shadow: 2px 2px 0 #000000; transition: box-shadow 0.1s, transform 0.1s;
+}
+.email-row button:hover { box-shadow: 1px 1px 0 #000000; transform: translate(0.5px,0.5px); }
+.email-success { color: var(--accent); font-weight: 700; font-size: 13px; padding: 8px 0; }
+
+/* ── NEXT STEPS ── */
+.next-section {
+  background: var(--bg); color: var(--text);
+  padding: 0 clamp(16px,5vw,40px) 100px; scroll-snap-align: start;
+}
+.next-inner { max-width: 560px; margin: 0 auto; }
+.trust-note {
+  background: var(--accent-dim); border: 1px solid rgba(45,212,191,0.10); border-radius: 2px;
+  padding: 12px 14px; font-size: 13px; color: var(--muted); margin-bottom: 18px; line-height: 1.6;
+}
+.edu-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
+  padding: 20px; margin-bottom: 10px; box-shadow: 3px 3px 0 #000000;
+}
+.edu-card h4 { font-size: 14px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 7px; color: var(--text); }
+.edu-card p  { font-size: 13px; color: var(--muted); line-height: 1.65; }
+.aff-card {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
+  padding: 16px 20px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.2s;
+  text-decoration: none; color: inherit; box-shadow: 3px 3px 0 #000000;
+}
+.aff-card:hover { border-color: rgba(45,212,191,0.25); }
+.aff-card h5   { font-size: 14px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 3px; color: var(--text); }
+.aff-card p    { font-size: 12px; color: var(--muted); }
+.aff-badge {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--amber); background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.15);
+  padding: 2px 7px; border-radius: 2px; margin-left: 8px; vertical-align: middle;
+}
+
+/* ── FOOTER ── */
+.site-footer {
+  background: var(--surface); border-top: 1px solid var(--border);
+  color: var(--muted); text-align: center; padding: 44px 20px; font-size: 12px; line-height: 2;
+}
+.footer-brand { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+
+/* SCROLL REVEAL */
+.sr { opacity: 0; transform: translateY(22px); transition: opacity 0.65s ease, transform 0.65s ease; }
+.sr.visible { opacity: 1; transform: translateY(0); }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--surface-win); border: 1px solid rgba(45,212,191,0.25);
+  color: var(--text); font-size: 13px; font-weight: 600;
+  padding: 12px 20px; border-radius: 2px; box-shadow: 3px 3px 0 #000000;
+  z-index: 500; transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+  pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 600px) {
+  .field-row { grid-template-columns: 1fr; }
+  .metrics-grid.cols-3 { grid-template-columns: 1fr 1fr; }
+  .act-row { grid-template-columns: 1fr; }
+  .email-row { flex-direction: column; }
+  .hero-stats { gap: 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- PROGRESS BAR -->
+<div id="scrollProgressBar"></div>
+
+<!-- TOAST NOTIFICATION -->
+<div class="toast" id="toast">✓ Copied to clipboard</div>
+
+<!-- HEADER -->
+<header class="glass-header" id="hdr">
+  <a class="header-logo" href="#">Settle or SIP</a>
+  <nav class="header-nav">
+    <a href="#about-section">About</a>
+    <a href="#calculator-section">Calculate</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero-section" id="hero-section">
+  <h1 class="hero-headline sr">
+    Your bank quietly<br/>
+    <span class="accent">added years</span><br/>
+    to your loan
+  </h1>
+  <p class="hero-sub sr" style="transition-delay:0.2s">
+    In 2022–24, RBI raised rates 6 times. Your EMI stayed the same. Your tenure didn't. Find out where you actually stand.
+  </p>
+  <div class="hero-stats sr" style="transition-delay:0.38s">
+    <div class="hero-stat"><div class="hero-stat-num" id="cnt1">6×</div><div class="hero-stat-label">Rate hikes</div></div>
+    <div class="hero-stat"><div class="hero-stat-num" id="cnt2">₹4.2L</div><div class="hero-stat-label">Avg. overpaid</div></div>
+    <div class="hero-stat"><div class="hero-stat-num" id="cnt3">34</div><div class="hero-stat-label">Months added</div></div>
+  </div>
+  <button class="hero-cta sr" style="transition-delay:0.52s" onclick="scrollTo('calculator-section')">Find your number →</button>
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </div>
+</section>
+
+<!--
+  ════════════════════════════════
+  AD SLOT 1 — Between Hero and Problem (high visibility)
+  Size: Leaderboard responsive
+  ════════════════════════════════
+-->
+<div class="ad-slot" style="padding-top:32px;padding-bottom:8px">
+  <!--
+    ADSENSE ACTIVE: Uncomment below after AdSense approval
+    Replace data-ad-client and data-ad-slot with your values from adsense.google.com
+
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+       data-ad-slot="1111111111"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  -->
+</div>
+
+<!-- PROBLEM CARDS -->
+<section class="problem-section" id="about-section">
+  <div class="section-label sr">The hidden cost</div>
+  <h2 class="section-title sr" style="transition-delay:0.1s">What your bank<br/>didn't tell you</h2>
+  <div class="cards-vertical">
+    <div class="fact-card sr" style="transition-delay:0.05s">
+      <div class="fact-card-icon">↻</div><div class="fact-card-num">2.5%</div>
+      <div class="fact-card-text">RBI raised repo rate from 4.0% to 6.5% — but your bank never told you the real impact on your loan.</div>
+    </div>
+    <div class="fact-card sr" style="transition-delay:0.10s">
+      <div class="fact-card-icon">⏱</div><div class="fact-card-num">34mo</div>
+      <div class="fact-card-text">Average tenure extension on a ₹40L home loan after the rate hike cycle. Silently added to your loan.</div>
+    </div>
+    <div class="fact-card sr" style="transition-delay:0.15s">
+      <div class="fact-card-icon">₹</div><div class="fact-card-num">₹4.2L</div>
+      <div class="fact-card-text">Extra interest paid over the life of the loan because your EMI stayed flat while the clock kept ticking.</div>
+    </div>
+    <div class="fact-card sr" style="transition-delay:0.20s">
+      <div class="fact-card-icon">✂</div><div class="fact-card-num">₹50K</div>
+      <div class="fact-card-text">A single prepayment of ₹50K can shave off 8 months and save over ₹1.5L in interest — the math is powerful.</div>
+    </div>
+    <div class="fact-card sr" style="transition-delay:0.25s">
+      <div class="fact-card-icon">⚖</div><div class="fact-card-num">9% vs 12%</div>
+      <div class="fact-card-text">Your loan costs 9% guaranteed. Your SIP might return 12%. But "might" carries risk — we'll show you the exact math.</div>
+    </div>
+  </div>
+</section>
+
+<!--
+  ════════════════════════════════
+  AD SLOT 2 — Before Calculator (intent moment)
+  ════════════════════════════════
+-->
+<div class="ad-slot" style="padding-top:40px">
+  <!--
+  <ins class="adsbygoogle"
+       style="display:block"
+       data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+       data-ad-slot="2222222222"
+       data-ad-format="auto"
+       data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+  -->
+</div>
+
+<!-- CALCULATOR SECTION -->
+<section class="calc-section" id="calculator-section">
+  <div class="calc-inner">
+    <div class="calc-label sr">The calculator</div>
+    <h2 class="calc-title sr" style="transition-delay:0.1s">Run the numbers</h2>
+
+    <div class="step-progress sr" id="stepProg" style="transition-delay:0.2s">
+      <div class="step-dot active" id="sd1">1</div>
+      <div class="step-line"><div class="step-line-fill" id="sl1" style="width:0%"></div></div>
+      <div class="step-dot" id="sd2">2</div>
+      <div class="step-line"><div class="step-line-fill" id="sl2" style="width:0%"></div></div>
+      <div class="step-dot" id="sd3">3</div>
+      <div class="step-line"><div class="step-line-fill" id="sl3" style="width:0%"></div></div>
+      <div class="step-dot" id="sd4">4</div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="calc-card sr" id="step1" style="transition-delay:0.25s">
+      <div class="calc-step-label">Step 1 of 4 — Tax Regime</div>
+      <h3 class="calc-step-title">Which tax regime are you on?</h3>
+      <div class="calc-step-desc">Under the <strong>New Tax Regime</strong> — default for most salaried Indians under 30 — Section 80C and 24(b) deductions don't exist. Get this wrong and the calculation is wrong.</div>
+      <div class="seg-toggle-l">
+        <button class="seg-btn-l active" onclick="setRegime('ntr',this)">New Tax Regime<span>Default since 2023–24</span></button>
+        <button class="seg-btn-l" onclick="setRegime('old',this)">Old Tax Regime<span>80C + 24(b) apply</span></button>
+      </div>
+      <div id="oldRegimeExtra" style="display:none;margin-bottom:16px">
+        <div class="field">
+          <label>Is your ₹1.5L 80C limit already maxed by EPF or insurance?</label>
+          <div class="bool-toggle-l">
+            <button class="bool-btn-l yes" id="max80yes" onclick="setMaxed(true)">Yes, already maxed</button>
+            <button class="bool-btn-l" id="max80no" onclick="setMaxed(false)">No, still room left</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn-accent" onclick="goStep(2)">Continue →</button>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="calc-card sr" id="step2" style="display:none">
+      <div class="calc-step-label">Step 2 of 4 — Your Debt</div>
+      <h3 class="calc-step-title">Tell me about your debt.</h3>
+      <div class="calc-step-desc">If this is a home loan taken after 2019, your bank likely <strong>extended your tenure silently</strong> when RBI raised rates in 2022–24 — without changing your EMI.</div>
+      <div class="field">
+        <label>Debt Type</label>
+        <select id="debtType">
+          <option value="home">Home Loan (~9% p.a.)</option>
+          <option value="personal">Personal Loan (~14% p.a.)</option>
+          <option value="credit">Credit Card (~36% p.a.)</option>
+          <option value="bnpl">BNPL (~24% p.a.)</option>
+          <option value="friend">Friend / Family Loan (0%)</option>
+        </select>
+      </div>
+      <div id="ccNotice" style="display:none;background:rgba(245,158,11,0.07);border:1px solid rgba(245,158,11,0.15);border-radius:2px;padding:11px 14px;font-size:13px;color:var(--amber);margin-bottom:14px;line-height:1.5">
+        At 36% APR, prepaying almost always wins — the calculator will confirm.
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Outstanding Principal (₹)</label><input type="number" id="principal" value="4000000" placeholder="e.g. 4000000"/></div>
+        <div class="field"><label>Interest Rate (% p.a.)</label><input type="number" id="irate" value="9" step="0.1" placeholder="9.0"/></div>
+      </div>
+      <div class="field">
+        <label>Remaining Tenure (months)</label>
+        <input type="number" id="tenure" value="180" placeholder="e.g. 180"/>
+        <p class="field-hint">Check your bank statement or call your bank for the current amortisation schedule.</p>
+      </div>
+      <div class="field">
+        <label>One-Time Prepayment (₹) <span class="field-opt">— Optional</span></label>
+        <input type="number" id="prepay" placeholder="e.g. 50000"/>
+        <p class="field-hint">A ₹50,000 prepayment can shave 6–18 months off a home loan.</p>
+      </div>
+      <button class="btn-accent" onclick="goStep(3)">Continue →</button>
+      <button class="btn-ghost" onclick="goStep(1)">← Back</button>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="calc-card sr" id="step3" style="display:none">
+      <div class="calc-step-label">Step 3 of 4 — Monthly Investment</div>
+      <h3 class="calc-step-title">How much can you invest monthly?</h3>
+      <div class="calc-step-desc">We'll show <strong>three return scenarios</strong> — 8%, 12%, 15% — so you know how robust the outcome is across market conditions.</div>
+      <div class="field">
+        <label>Monthly Surplus (₹)</label>
+        <input type="number" id="monthly" value="10000" placeholder="e.g. 10000"/>
+        <p class="field-hint">The amount you'd either put toward prepayment or into a SIP each month.</p>
+      </div>
+      <div class="field">
+        <label>Time Horizon (years)</label>
+        <input type="number" id="horizon" value="10" min="1" max="30" placeholder="10"/>
+        <p class="field-hint">How many years from now to compare projected wealth outcomes.</p>
+      </div>
+      <button class="btn-accent" onclick="goStep(4)">Continue →</button>
+      <button class="btn-ghost" onclick="goStep(2)">← Back</button>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="calc-card sr" id="step4" style="display:none">
+      <div class="calc-step-label">Step 4 of 4 — Emergency Buffer</div>
+      <h3 class="calc-step-title">Do you have an emergency buffer?</h3>
+      <div class="calc-step-desc">This doesn't change the math — it changes the risk. A "SIP first" result without a buffer means one medical bill could force a high-interest personal loan, <strong>wiping out your SIP gains instantly</strong>.</div>
+      <div class="field">
+        <label>3+ months of expenses as liquid savings (FD or savings account)?</label>
+        <div class="bool-toggle-l">
+          <button class="bool-btn-l" id="bufyes" onclick="setBuffer(true)">Yes, I have it</button>
+          <button class="bool-btn-l" id="bufno" onclick="setBuffer(false)">No, not yet</button>
+        </div>
+      </div>
+      <button class="btn-accent" onclick="calculate()">See my verdict →</button>
+      <button class="btn-ghost" onclick="goStep(3)">← Back</button>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS SECTION -->
+<section class="results-section" id="results-section" style="display:none">
+  <div class="results-inner">
+    <div id="resultsPhase" aria-live="polite" aria-label="Your financial verdict">
+
+      <div class="result-verdict-hero">
+        <div class="result-path-badge" id="heroPathBadge">⚡ Path A — Recommended</div>
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Debt-free by</div>
+        <div class="result-date-hero" id="heroDate">Mar 2037</div>
+        <div class="result-months-note" id="heroSub">34 months remaining · ₹4.2L interest saved</div>
+        <p class="diagnosis-line" id="diagLine"></p>
+      </div>
+
+      <div class="badge-row" id="badgeRow"></div>
+      <div class="lump-box" id="lumpBox" style="display:none"></div>
+
+      <div class="path-card winner" id="winnerCard">
+        <div class="path-head">
+          <span class="path-dot" id="winnerDot"></span>
+          <span id="winnerLabel">Path A — Prepay Debt</span>
+          <span class="rec-chip">Recommended</span>
+        </div>
+        <div class="metrics-grid cols-3" id="winnerMetrics"></div>
+        <div class="wealth-divider" id="winnerWealth"></div>
+      </div>
+
+      <div class="path-card" id="loserCard">
+        <div class="path-head">
+          <span class="path-dot" id="loserDot"></span>
+          <span id="loserLabel">Path B — SIP First</span>
+        </div>
+        <div id="loserContent"></div>
+      </div>
+
+      <!--
+        ════════════════════════════════
+        AD SLOT 3 — Mid Results (highest intent, best RPM)
+        ════════════════════════════════
+      -->
+      <div class="ad-slot" style="padding:0;margin:16px 0">
+        <!--
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+             data-ad-slot="3333333333"
+             data-ad-format="rectangle"
+             data-full-width-responsive="true"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+        -->
+      </div>
+
+      <div class="disclaimer">
+        These are mathematical projections based on your inputs and historical return averages. Actual market returns and interest rates vary. <strong>This is not investment advice</strong> — consult a SEBI-registered advisor before making financial decisions.
+      </div>
+
+      <div class="expandable-r">
+        <button class="exp-header-r" onclick="toggleRBI(this)">
+          <span>See how RBI rate changes affect your timeline →</span>
+          <span id="rbiArrow">↓</span>
+        </button>
+        <div class="exp-body-r" id="rbiBody">
+          <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6">
+            RBI raised repo rate from 4.0% → 6.5% between May 2022 and Feb 2023. Most banks extended tenures instead of raising EMIs. Here's how future changes affect you:
+          </p>
+          <div id="rbiBars"></div>
+          <p style="margin-top:12px;font-size:12px;color:var(--accent)">Next RBI MPC meeting: June 2026. Recalculate after each announcement.</p>
+        </div>
+      </div>
+
+      <div class="act-row">
+        <button class="btn-act dl" id="dlBtn" onclick="downloadPDF()">⬇ Download PDF</button>
+        <button class="btn-act sh" id="shareBtn" onclick="shareResult()">↗ Share result</button>
+      </div>
+
+      <!-- EMAIL CAPTURE — Results section -->
+      <div class="email-box">
+        <h4>Get notified when RBI changes rates</h4>
+        <p>We'll remind you to recalculate after each MPC meeting — 6 times a year.</p>
+        <div class="email-row" id="emailRow1">
+          <input type="email" id="emailInput1" placeholder="your@email.com"/>
+          <button onclick="subscribeEmail('emailInput1','emailRow1')">Notify me</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- NEXT STEPS -->
+<section class="next-section" id="next-section" style="display:none">
+  <div class="next-inner" style="padding-top:80px">
+    <div class="calc-label sr">Next steps</div>
+    <h2 class="calc-title sr" style="transition-delay:0.1s;margin-bottom:32px">If you want to act</h2>
+
+    <div class="trust-note sr" style="transition-delay:0.15s">
+      Here are tools people commonly use after this analysis. We may earn a small commission if you sign up via these links — it doesn't affect what the calculator showed you.
+    </div>
+
+    <div class="edu-card sr" style="transition-delay:0.2s">
+      <h4>Why your loan rate matters more than you think</h4>
+      <p>Your loan interest rate is a guaranteed return — every rupee you prepay earns exactly that rate, risk-free. At 9% p.a., prepaying a home loan beats an FD (7%), most bonds, and matches conservative equity returns over shorter horizons.</p>
+    </div>
+    <div class="edu-card sr" style="transition-delay:0.25s">
+      <h4>How to negotiate a lower rate with your bank</h4>
+      <p>Ask your bank for a "rate reset" to the current EBLR + spread. If they refuse, a balance transfer to a competing bank often cuts 0.5–1.0% — same effect as a significant lump-sum prepayment.</p>
+    </div>
+
+    <!--
+      ════════════════════════════════════════════════════════════
+      AFFILIATE LINKS — ACTION REQUIRED
+      ════════════════════════════════════════════════════════════
+      1. Sign up at BankBazaar Affiliate Program (search "BankBazaar affiliate program")
+      2. Sign up at Paisabazaar Affiliate (search "Paisabazaar affiliate")
+      3. After approval, replace the href="#" below with your unique tracking URLs
+      ════════════════════════════════════════════════════════════
+    -->
+
+    <!-- AFFILIATE LINK 1: Home Loan Comparison -->
+    <a href="#"
+       class="aff-card sr"
+       style="transition-delay:0.3s"
+       target="_blank"
+       rel="noopener"
+       data-affiliate="bankbazaar-homeloan"
+       onclick="trackAffiliate('bankbazaar-homeloan'); return this.href !== '#';">
+      <div>
+        <h5>Compare home loan refinance rates <span class="aff-badge">Affiliate</span></h5>
+        <p>Check rates across 20+ banks — via BankBazaar</p>
+      </div>
+      <span style="color:var(--accent);font-size:18px;margin-left:12px;flex-shrink:0">→</span>
+    </a>
+
+    <!-- AFFILIATE LINK 2: Credit Score -->
+    <a href="#"
+       class="aff-card sr"
+       style="transition-delay:0.35s"
+       target="_blank"
+       rel="noopener"
+       data-affiliate="paisabazaar-cibil"
+       onclick="trackAffiliate('paisabazaar-cibil'); return this.href !== '#';">
+      <div>
+        <h5>Check your free credit score <span class="aff-badge">Affiliate</span></h5>
+        <p>A better CIBIL score means a better refinance rate — via Paisabazaar</p>
+      </div>
+      <span style="color:var(--accent);font-size:18px;margin-left:12px;flex-shrink:0">→</span>
+    </a>
+
+    <!-- AFFILIATE LINK 3: SIP / Mutual Funds (if SIP wins) -->
+    <a href="#"
+       class="aff-card sr"
+       style="transition-delay:0.38s"
+       target="_blank"
+       rel="noopener"
+       data-affiliate="groww-sip"
+       id="sipAffLink"
+       onclick="trackAffiliate('groww-sip'); return this.href !== '#';">
+      <div>
+        <h5>Start a SIP in 2 minutes <span class="aff-badge">Affiliate</span></h5>
+        <p>Zero commission mutual funds — via Groww or Zerodha Coin</p>
+      </div>
+      <span style="color:var(--accent);font-size:18px;margin-left:12px;flex-shrink:0">→</span>
+    </a>
+
+    <!--
+      ════════════════════════════════
+      AD SLOT 4 — Next Steps section
+      ════════════════════════════════
+    -->
+    <div class="ad-slot sr" style="padding:16px 0;transition-delay:0.40s">
+      <!--
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+           data-ad-slot="4444444444"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      -->
+    </div>
+
+    <!-- EMAIL CAPTURE — Next Steps section -->
+    <div class="email-box sr" style="transition-delay:0.42s">
+      <h4>Get notified when RBI changes rates</h4>
+      <p>We'll remind you to recalculate after each MPC meeting — 6 times a year.</p>
+      <div class="email-row" id="emailRow2">
+        <input type="email" id="emailInput2" placeholder="your@email.com"/>
+        <button onclick="subscribeEmail('emailInput2','emailRow2')">Notify me</button>
+      </div>
+    </div>
+
+    <div style="text-align:center;padding:24px 0 0;font-size:13px;color:var(--muted);line-height:1.8" class="sr">
+      <strong style="color:var(--text)">Next RBI MPC meeting: June 2026.</strong><br/>
+      Bookmark this page and recalculate after each announcement.
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div class="footer-brand">Settle or SIP</div>
+  <div>Mathematical projections only. Not investment advice.</div>
+  <div>Consult a SEBI-registered advisor before making financial decisions.</div>
+  <div style="margin-top:12px;font-size:11px;opacity:0.5">Links marked "Affiliate" may earn us a commission at no cost to you.</div>
+</footer>
+
+
+<!-- ═══════════════════════════════════════════════════
+     PRESERVED JS — ZERO LOGIC CHANGES
+     ═══════════════════════════════════════════════════ -->
+<script>
+/* ── STATE ── */
+const state = {
+  regime: 'ntr', maxed80C: false,
+  debtType: 'home', principal: 4000000, irate: 9, tenure: 180, prepay: 0,
+  monthly: 10000, horizon: 10, hasBuffer: null
+};
+let currentStep = 1;
+let calcResult = null;
+
+/* ── HELPERS ── */
+function fmt(n) {
+  if (!n || isNaN(n)) return '₹0';
+  const a = Math.abs(Math.round(n));
+  if (a >= 10000000) return '₹' + (n / 10000000).toFixed(1) + 'Cr';
+  if (a >= 100000)   return '₹' + (n / 100000).toFixed(1)   + 'L';
+  if (a >= 1000)     return '₹' + (n / 1000).toFixed(0)     + 'K';
+  return '₹' + a.toLocaleString('en-IN');
+}
+function monthsToDate(m) {
+  const d = new Date(); d.setMonth(d.getMonth() + m);
+  return d.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+}
+function scrollTo(id) {
+  const el = document.getElementById(id);
+  if (el) window.scrollTo({ top: el.offsetTop - 64, behavior: 'smooth' });
+}
+
+/* ── FORM STEPS ── */
+function setRegime(v, btn) {
+  state.regime = v;
+  document.querySelectorAll('.seg-btn-l').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('oldRegimeExtra').style.display = v === 'old' ? 'block' : 'none';
+}
+function setMaxed(v) {
+  state.maxed80C = v;
+  document.getElementById('max80yes').className = 'bool-btn-l' + (v ? ' yes' : '');
+  document.getElementById('max80no').className  = 'bool-btn-l' + (!v ? ' no' : '');
+}
+function setBuffer(v) {
+  state.hasBuffer = v;
+  document.getElementById('bufyes').className = 'bool-btn-l' + (v ? ' yes' : '');
+  document.getElementById('bufno').className  = 'bool-btn-l' + (!v ? ' no' : '');
+}
+document.getElementById('debtType').addEventListener('change', function() {
+  state.debtType = this.value;
+  document.getElementById('ccNotice').style.display = this.value === 'credit' ? 'block' : 'none';
+});
+
+function goStep(n) {
+  const steps = [1,2,3,4];
+  steps.forEach(s => {
+    const el = document.getElementById('step' + s);
+    if (s === n) { el.style.display = 'block'; setTimeout(() => el.classList.add('visible'), 20); }
+    else         { el.style.display = 'none'; el.classList.remove('visible'); }
+    const dot = document.getElementById('sd' + s);
+    if (s < n)        { dot.className = 'step-dot done';   dot.textContent = '✓'; }
+    else if (s === n) { dot.className = 'step-dot active'; dot.textContent = s; }
+    else              { dot.className = 'step-dot';        dot.textContent = s; }
+    if (s < 4) document.getElementById('sl' + s).style.width = s < n ? '100%' : '0%';
+  });
+  currentStep = n;
+  scrollTo('calculator-section');
+}
+
+/* ── CALCULATOR ── */
+function runCalc() {
+  const P = state.principal, annR = state.irate, tenM = state.tenure;
+  const lump = state.prepay || 0, surp = state.monthly, hrzM = state.horizon * 12;
+  const r = annR / 100 / 12;
+  const emi = P * r * Math.pow(1+r,tenM) / (Math.pow(1+r,tenM) - 1);
+
+  function sim(sipR) {
+    const sr = sipR / 100 / 12;
+    let dA = Math.max(0,P-lump), sipA=0, intA=0, dfm=0;
+    for (let m=1; m<=hrzM; m++) {
+      if (dA>0) { const i=dA*r; intA+=i; dA=Math.max(0,dA-((emi+surp)-i)); if(dA<=0&&dfm===0) dfm=m; }
+      else { sipA = sipA*(1+sr)+(emi+surp); }
+    }
+    let dB=P, sipB=0, intB=0;
+    for (let m=1; m<=hrzM; m++) {
+      if (dB>0) { const i=dB*r; intB+=i; dB=Math.max(0,dB-(emi-i)); sipB=sipB*(1+sr)+surp; }
+      else { sipB=sipB*(1+sr)+(emi+surp); }
+    }
+    return { wA:Math.round(sipA), wB:Math.round(sipB), intA:Math.round(intA), intB:Math.round(intB), dfm };
+  }
+
+  const s12=sim(12), s8=sim(8), s15=sim(15);
+  const nominalSaved = s12.intB - s12.intA;
+  let taxSavedA=0, taxSavedB=0;
+
+  if (state.regime==='old' && state.debtType==='home') {
+    const TAX_RATE=0.30, INT_CAP_M=200000/12, PRINC_CAP_M=state.maxed80C ? 0 : 150000/12;
+    let dA=Math.max(0,P-lump);
+    for (let m=1; m<=hrzM&&dA>0; m++) {
+      const i=dA*r, p=Math.min(emi+surp-i,dA);
+      taxSavedA+=Math.min(i,INT_CAP_M)*TAX_RATE; taxSavedA+=Math.min(p,PRINC_CAP_M)*TAX_RATE;
+      dA=Math.max(0,dA-p);
+    }
+    let dB=P;
+    for (let m=1; m<=hrzM&&dB>0; m++) {
+      const i=dB*r, p=Math.min(emi-i,dB);
+      taxSavedB+=Math.min(i,INT_CAP_M)*TAX_RATE; taxSavedB+=Math.min(p,PRINC_CAP_M)*TAX_RATE;
+      dB=Math.max(0,dB-p);
+    }
+    taxSavedA=Math.round(taxSavedA); taxSavedB=Math.round(taxSavedB);
+  }
+
+  const taxAdj=taxSavedB-taxSavedA, effectiveSaved=nominalSaved-taxAdj;
+  let dfmNoPrepay=0;
+  if (lump>0) {
+    let d0=P, dfm0=0;
+    for (let m=1; m<=hrzM; m++) {
+      if (d0>0) { const i=d0*r; d0=Math.max(0,d0-((emi+surp)-i)); if(d0<=0&&dfm0===0) dfm0=m; }
+    }
+    dfmNoPrepay=dfm0;
+  }
+  const lumpMonthsSaved=lump>0 ? Math.max(0,dfmNoPrepay-s12.dfm) : 0;
+
+  return {
+    emi:Math.round(emi), saved:Math.round(nominalSaved), effectiveSaved:Math.round(effectiveSaved),
+    taxSavedA, taxSavedB, taxAdj:Math.round(taxAdj),
+    aWins:(s12.wA+effectiveSaved)>s12.wB, debtFreeMonths:s12.dfm, debtFreeDate:monthsToDate(s12.dfm),
+    pathA:{monthly:Math.round(emi+surp), months:s12.dfm, wA:s12.wA},
+    pathB:{monthly:Math.round(emi), months:tenM, w8:s8.wB, w12:s12.wB, w15:s15.wB},
+    lump, lumpMonthsSaved, lumpDate:monthsToDate(s12.dfm),
+    noLumpDate:lump>0 ? monthsToDate(dfmNoPrepay) : null,
+    hasBuffer:state.hasBuffer, regime:state.regime, debtType:state.debtType
+  };
+}
+
+function calculate() {
+  state.principal = parseFloat(document.getElementById('principal').value) || 4000000;
+  state.irate     = parseFloat(document.getElementById('irate').value)     || 9;
+  state.tenure    = parseInt(document.getElementById('tenure').value)       || 180;
+  state.prepay    = parseFloat(document.getElementById('prepay').value)     || 0;
+  state.monthly   = parseFloat(document.getElementById('monthly').value)   || 10000;
+  state.horizon   = parseInt(document.getElementById('horizon').value)      || 10;
+  calcResult = runCalc();
+  document.getElementById('results-section').style.display = 'block';
+  revealResults();
+  setTimeout(() => scrollTo('results-section'), 60);
+}
+
+function revealResults() {
+  const r = calcResult;
+  const badges = [];
+  if (!r.hasBuffer) badges.push(`<span class="badge-r warning">⚠ Without a 3-month buffer, one emergency can reverse this outcome</span>`);
+  if (r.regime==='ntr') {
+    badges.push(`<span class="badge-r info">ℹ New Tax Regime — 24(b) &amp; 80C deductions not applied</span>`);
+  } else if (r.regime==='old' && r.debtType==='home') {
+    const netTaxLine = r.taxAdj>0
+      ? `24(b) gives Path B <strong>${fmt(r.taxAdj)}</strong> extra benefit — erodes prepayment advantage`
+      : `24(b) roughly equal across paths`;
+    badges.push(`<span class="badge-r info">ℹ Old Regime — ${netTaxLine} · 30% bracket assumed</span>`);
+    if (state.maxed80C) badges.push(`<span class="badge-r info">ℹ 80C maxed — principal deduction skipped</span>`);
+    else                badges.push(`<span class="badge-r info">ℹ 80C not maxed — principal repayment deduction included</span>`);
+  } else if (r.regime==='old') {
+    badges.push(`<span class="badge-r info">ℹ Old Regime — 24(b) applies to home loans only; skipped for ${r.debtType} loan</span>`);
+  }
+  document.getElementById('badgeRow').innerHTML = badges.join('');
+
+  const lumpBox = document.getElementById('lumpBox');
+  if (r.lump>0 && r.lumpMonthsSaved>0) {
+    lumpBox.innerHTML = `Your <strong>${fmt(r.lump)}</strong> prepayment shaves <strong>${r.lumpMonthsSaved} months</strong> off Path A — debt-free by <strong>${r.lumpDate}</strong> instead of ${r.noLumpDate}.`;
+    lumpBox.style.display = 'block';
+  }
+
+  document.getElementById('winnerDot').style.background  = r.aWins ? 'var(--accent)' : 'var(--green)';
+  document.getElementById('winnerLabel').textContent      = r.aWins ? 'Path A — Prepay Debt' : 'Path B — SIP First';
+
+  if (r.aWins) {
+    document.getElementById('winnerMetrics').innerHTML = `
+      <div><div class="metric-label-r">Monthly payment</div><div class="metric-value-r accent">${fmt(r.pathA.monthly)}/mo</div></div>
+      <div><div class="metric-label-r">Debt-free in</div><div class="metric-value-r">${r.pathA.months} months</div></div>
+      <div><div class="metric-label-r">Interest saved</div><div class="metric-value-r">${fmt(r.saved)}</div></div>`;
+    document.getElementById('winnerWealth').innerHTML = `
+      <div class="metric-label-r" style="margin-bottom:6px">Projected wealth at ${state.horizon}yr</div>
+      <div class="metric-value-lg-r">${fmt(r.pathA.wA)}</div>`;
+  } else {
+    document.getElementById('winnerMetrics').innerHTML = `
+      <div><div class="metric-label-r">Monthly EMI</div><div class="metric-value-r accent">${fmt(r.pathB.monthly)}/mo</div></div>
+      <div><div class="metric-label-r">Debt-free in</div><div class="metric-value-r">${r.pathB.months} months</div></div>
+      <div><div class="metric-label-r">At 12% returns</div><div class="metric-value-r" style="color:var(--green)">${fmt(r.pathB.w12)}</div></div>`;
+    document.getElementById('winnerWealth').innerHTML = `
+      <div class="metric-label-r" style="margin-bottom:8px">Projected wealth at ${state.horizon}yr</div>
+      <div class="band"><span class="band-label">Conservative (8%)</span><span class="band-value">${fmt(r.pathB.w8)}</span></div>
+      <div class="band"><span class="band-label">Expected (12%)</span><span class="band-value accent">${fmt(r.pathB.w12)}</span></div>
+      <div class="band"><span class="band-label">Optimistic (15%)</span><span class="band-value">${fmt(r.pathB.w15)}</span></div>`;
+  }
+
+  document.getElementById('loserDot').style.background  = r.aWins ? 'var(--green)' : 'var(--accent)';
+  document.getElementById('loserLabel').textContent     = r.aWins ? 'Path B — SIP First' : 'Path A — Prepay Debt';
+
+  if (r.aWins) {
+    document.getElementById('loserContent').innerHTML = `
+      <div class="metrics-grid cols-2" style="margin-bottom:12px">
+        <div><div class="metric-label-r">Monthly EMI</div><div class="metric-value-r" style="font-size:14px">${fmt(r.pathB.monthly)}/mo</div></div>
+        <div><div class="metric-label-r">Debt-free in</div><div class="metric-value-r" style="font-size:14px">${r.pathB.months} months</div></div>
+      </div>
+      <div class="wealth-divider">
+        <div class="metric-label-r" style="margin-bottom:8px">Projected wealth at ${state.horizon}yr</div>
+        <div class="band"><span class="band-label">Conservative (8%)</span><span class="band-value">${fmt(r.pathB.w8)}</span></div>
+        <div class="band"><span class="band-label">Expected (12%)</span><span class="band-value">${fmt(r.pathB.w12)}</span></div>
+        <div class="band"><span class="band-label">Optimistic (15%)</span><span class="band-value">${fmt(r.pathB.w15)}</span></div>
+      </div>`;
+  } else {
+    document.getElementById('loserContent').innerHTML = `
+      <div class="metrics-grid cols-2" style="margin-bottom:12px">
+        <div><div class="metric-label-r">Monthly payment</div><div class="metric-value-r" style="font-size:14px">${fmt(r.pathA.monthly)}/mo</div></div>
+        <div><div class="metric-label-r">Debt-free in</div><div class="metric-value-r" style="font-size:14px">${r.pathA.months} months</div></div>
+      </div>
+      <div class="wealth-divider">
+        <div class="metric-label-r" style="margin-bottom:6px">Projected wealth at ${state.horizon}yr</div>
+        <div class="metric-value-r" style="color:var(--text-light-muted)">${fmt(r.pathA.wA)}</div>
+      </div>`;
+  }
+
+  const ten=state.tenure, ext5=Math.max(1,Math.round(ten*0.045)), ext10=Math.max(1,Math.round(ten*0.095));
+  document.getElementById('rbiBars').innerHTML = `
+    <div class="rbi-row"><span style="color:var(--muted);min-width:120px;font-size:11px">Current tenure</span><div class="rbi-bar-wrap"><div class="rbi-bar-inner" style="width:70%;background:var(--accent)"></div></div><span style="font-size:11px;font-weight:600;min-width:52px;text-align:right">${ten} mo</span></div>
+    <div class="rbi-row"><span style="color:var(--muted);min-width:120px;font-size:11px">After +0.5% hike</span><div class="rbi-bar-wrap"><div class="rbi-bar-inner" style="width:${Math.round(70*(ten+ext5)/(ten+ext10))}%;background:var(--amber)"></div></div><span style="font-size:11px;font-weight:600;min-width:52px;text-align:right">${ten+ext5} mo</span></div>
+    <div class="rbi-row"><span style="color:var(--muted);min-width:120px;font-size:11px">After +1.0% hike</span><div class="rbi-bar-wrap"><div class="rbi-bar-inner" style="width:100%;background:var(--red)"></div></div><span style="font-size:11px;font-weight:600;min-width:52px;text-align:right">${ten+ext10} mo</span></div>`;
+
+  document.getElementById('heroDate').textContent      = r.debtFreeDate;
+  document.getElementById('heroPathBadge').textContent = r.aWins ? '⚡ Path A — Recommended' : '📈 Path B — Recommended';
+  document.getElementById('heroSub').textContent       = r.aWins
+    ? `${r.debtFreeMonths} months remaining · ${fmt(r.saved)} interest saved`
+    : `SIP projected at 12%: ${fmt(r.pathB.w12)} at ${state.horizon}yr`;
+
+  const showEff = r.regime==='old' && r.debtType==='home' && r.taxAdj>0;
+  document.getElementById('diagLine').innerHTML = r.aWins
+    ? showEff
+      ? `Gross interest saved: <strong>${fmt(r.saved)}</strong> — but 24(b) gives SIP path <strong>${fmt(r.taxAdj)}</strong> extra tax benefit. Net advantage after tax: <strong>${fmt(r.effectiveSaved)}</strong>.`
+      : `Prepaying saves <strong>${fmt(r.saved)}</strong> in interest — a guaranteed <strong>${state.irate}%</strong> risk-free return on every rupee.`
+    : showEff
+      ? `After 24(b) deductions, SIP path recovers <strong>${fmt(r.taxAdj)}</strong> of the interest gap — making it the stronger choice at 12%+ returns.`
+      : `Investing <strong>${fmt(state.monthly)}/mo</strong> at 12%+ outpaces your <strong>${state.irate}%</strong> loan cost over ${state.horizon} years.`;
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.getElementById('resultsPhase').classList.add('revealed');
+  }));
+  document.getElementById('next-section').style.display = 'block';
+  setTimeout(() => {
+    document.querySelectorAll('#next-section .sr').forEach(el => el.classList.add('visible'));
+  }, 900);
+}
+
+function toggleRBI(btn) {
+  const body = document.getElementById('rbiBody');
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  document.getElementById('rbiArrow').textContent = open ? '↓' : '↑';
+}
+
+/* ── HEADER SCROLL ── */
+window.addEventListener('scroll', () => {
+  const hdr = document.getElementById('hdr');
+  hdr.classList.toggle('scrolled', window.scrollY > 40);
+  const lightSections = document.querySelectorAll('.calc-section, .results-section, .next-section');
+  let isLight = false;
+  lightSections.forEach(s => { const r=s.getBoundingClientRect(); if(r.top<80&&r.bottom>80) isLight=true; });
+  hdr.classList.toggle('over-light', isLight);
+}, { passive: true });
+
+/* ── SCROLL REVEAL ── */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); observer.unobserve(e.target); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.sr').forEach(el => observer.observe(el));
+</script>
+
+
+<!-- ═══════════════════════════════════════════════════
+     FUNCTIONAL FEATURES
+     ═══════════════════════════════════════════════════ -->
+<script>
+/* ════════════════════════════════════════════════════════════
+   PDF DOWNLOAD — jsPDF (works immediately, no account needed)
+   ════════════════════════════════════════════════════════════ */
+function downloadPDF() {
+  if (!calcResult) { showToast('Run the calculator first.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const r = calcResult;
+  const date = new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+  const W = 210, pad = 20;
+
+  /* helpers */
+  const line  = (txt, x, y, opts={}) => { doc.text(txt, x, y, opts); };
+  const rule  = (y, clr='#1e293b') => { doc.setDrawColor(clr); doc.setLineWidth(0.4); doc.line(pad, y, W-pad, y); };
+  const label = (txt, x, y) => { doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor('#94a3b8'); line(txt,x,y); };
+  const value = (txt, x, y, clr='#f8fafc') => { doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(clr); line(txt,x,y); };
+
+  /* Background */
+  doc.setFillColor('#030712');
+  doc.rect(0, 0, W, 297, 'F');
+
+  /* Header bar */
+  doc.setFillColor('#0f172a');
+  doc.rect(0, 0, W, 36, 'F');
+  doc.setFillColor('#2DD4BF');
+  doc.rect(0, 0, W, 3, 'F');
+
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(16); doc.setTextColor('#2DD4BF');
+  line('SETTLE OR SIP', pad, 18);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(8); doc.setTextColor('#94a3b8');
+  line('Your personalised financial verdict', pad, 26);
+  doc.setFontSize(8); doc.setTextColor('#64748b');
+  line('Generated ' + date, W-pad, 26, { align:'right' });
+
+  let y = 52;
+
+  /* VERDICT HERO */
+  doc.setFillColor('#0f172a');
+  doc.roundedRect(pad, y-8, W-pad*2, 44, 2, 2, 'F');
+  doc.setFillColor('#2DD4BF');
+  doc.rect(pad, y-8, 3, 44, 'F');
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor('#2DD4BF');
+  line(r.aWins ? '⚡  PATH A RECOMMENDED — PREPAY DEBT' : '📈  PATH B RECOMMENDED — SIP FIRST', pad+10, y);
+
+  doc.setFontSize(28); doc.setTextColor('#2DD4BF');
+  line(r.debtFreeDate, pad+10, y+16);
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor('#94a3b8');
+  const subLine = r.aWins
+    ? `${r.debtFreeMonths} months remaining  ·  ${fmt(r.saved)} interest saved`
+    : `SIP at 12%: ${fmt(r.pathB.w12)} at ${state.horizon} years`;
+  line(subLine, pad+10, y+26);
+
+  y += 52;
+  rule(y);
+  y += 10;
+
+  /* YOUR INPUTS */
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor('#94a3b8');
+  line('YOUR INPUTS', pad, y); y += 8;
+
+  const inputs = [
+    ['Principal', fmt(state.principal)],
+    ['Interest Rate', state.irate + '% p.a.'],
+    ['Remaining Tenure', state.tenure + ' months'],
+    ['Monthly Surplus', fmt(state.monthly) + '/mo'],
+    ['Time Horizon', state.horizon + ' years'],
+    ['Tax Regime', state.regime === 'ntr' ? 'New Tax Regime' : 'Old Tax Regime'],
+  ];
+  if (state.prepay > 0) inputs.push(['Prepayment', fmt(state.prepay)]);
+
+  const colW = (W - pad*2) / 3;
+  inputs.forEach((inp, i) => {
+    const col = i % 3, row = Math.floor(i/3);
+    const ix = pad + col*colW, iy = y + row*18;
+    label(inp[0].toUpperCase(), ix, iy);
+    value(inp[1], ix, iy+6, '#f8fafc');
+  });
+  y += (Math.ceil(inputs.length / 3)) * 18 + 10;
+
+  rule(y); y += 10;
+
+  /* WINNER PATH */
+  doc.setFillColor('#1e293b');
+  doc.roundedRect(pad, y-4, W-pad*2, 52, 2, 2, 'F');
+  doc.setFillColor(r.aWins ? '#2DD4BF' : '#22C55E');
+  doc.rect(pad, y-4, 3, 52, 'F');
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor('#2DD4BF');
+  line(r.aWins ? 'PATH A — PREPAY DEBT (WINNER)' : 'PATH B — SIP FIRST (WINNER)', pad+10, y+4);
+
+  if (r.aWins) {
+    label('MONTHLY PAYMENT', pad+10, y+14); value(fmt(r.pathA.monthly)+'/mo', pad+10, y+20, '#2DD4BF');
+    label('DEBT-FREE IN', pad+10+colW, y+14); value(r.pathA.months+' months', pad+10+colW, y+20);
+    label('INTEREST SAVED', pad+10+colW*2, y+14); value(fmt(r.saved), pad+10+colW*2, y+20, '#22C55E');
+    label('PROJECTED WEALTH AT '+state.horizon+'YR', pad+10, y+32); value(fmt(r.pathA.wA), pad+10, y+40, '#2DD4BF');
+  } else {
+    label('MONTHLY EMI', pad+10, y+14); value(fmt(r.pathB.monthly)+'/mo', pad+10, y+20, '#2DD4BF');
+    label('DEBT-FREE IN', pad+10+colW, y+14); value(r.pathB.months+' months', pad+10+colW, y+20);
+    label('PROJECTED WEALTH (12%)', pad+10, y+32);
+    value(fmt(r.pathB.w8) + ' — ' + fmt(r.pathB.w12) + ' — ' + fmt(r.pathB.w15), pad+10, y+40, '#2DD4BF');
+    doc.setFontSize(8); doc.setTextColor('#64748b');
+    line('conservative — expected — optimistic', pad+10, y+47);
+  }
+  y += 62;
+
+  /* OTHER PATH */
+  doc.setFillColor('#0f172a');
+  doc.roundedRect(pad, y-4, W-pad*2, 36, 2, 2, 'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor('#94a3b8');
+  line(r.aWins ? 'PATH B — SIP FIRST' : 'PATH A — PREPAY DEBT', pad+8, y+4);
+  if (r.aWins) {
+    label('MONTHLY EMI', pad+8, y+14); value(fmt(r.pathB.monthly)+'/mo', pad+8, y+20, '#94a3b8');
+    label('SIP AT 8/12/15%', pad+8+colW, y+14); value(fmt(r.pathB.w8)+' / '+fmt(r.pathB.w12)+' / '+fmt(r.pathB.w15), pad+8+colW, y+20, '#94a3b8');
+  } else {
+    label('MONTHLY PAYMENT', pad+8, y+14); value(fmt(r.pathA.monthly)+'/mo', pad+8, y+20, '#94a3b8');
+    label('INTEREST SAVED', pad+8+colW, y+14); value(fmt(r.saved), pad+8+colW, y+20, '#94a3b8');
+  }
+  y += 44;
+
+  /* DISCLAIMER */
+  doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor('#475569');
+  doc.text(
+    'These are mathematical projections only. Actual returns and rates vary. This is not investment advice.',
+    pad, y, { maxWidth: W-pad*2 }
+  );
+  y += 10;
+  doc.setTextColor('#2DD4BF');
+  line('settl-or-sip.vercel.app  ·  Recalculate after each RBI MPC meeting.', pad, y);
+
+  doc.save('settle-or-sip-verdict.pdf');
+  showToast('PDF saved!');
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   EMAIL SUBSCRIPTION — Formspree
+   ════════════════════════════════════════════════════════════
+   SETUP (free):
+   1. Go to formspree.io and sign up with your email
+   2. Click "New Form" → name it "Settle or SIP Subscribers"
+   3. Copy your form endpoint (looks like: https://formspree.io/f/xxxxxxxx)
+   4. Replace FORMSPREE_ENDPOINT below with that URL
+   ════════════════════════════════════════════════════════════ */
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mwvyyqdy';
+
+async function subscribeEmail(inputId, rowId) {
+  const emailEl = document.getElementById(inputId);
+  const rowEl   = document.getElementById(rowId);
+  const email   = emailEl ? emailEl.value.trim() : '';
+
+  if (!email || !email.includes('@')) { showToast('Enter a valid email.'); return; }
+
+  /* Show loading state */
+  const btn = rowEl.querySelector('button');
+  const originalText = btn.textContent;
+  btn.textContent = '...'; btn.disabled = true;
+
+  if (FORMSPREE_ENDPOINT.includes('REPLACE')) {
+    /* Formspree not configured yet — save locally, show success */
+    const saved = JSON.parse(localStorage.getItem('sos_subscribers') || '[]');
+    if (!saved.includes(email)) { saved.push(email); localStorage.setItem('sos_subscribers', JSON.stringify(saved)); }
+    rowEl.innerHTML = '<p class="email-success">✓ Done — we\'ll ping you after the next RBI MPC.</p>';
+    showToast('Subscribed!');
+    return;
+  }
+
+  try {
+    const res = await fetch(FORMSPREE_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ email, source: 'settle-or-sip', date: new Date().toISOString() })
+    });
+    if (res.ok) {
+      rowEl.innerHTML = '<p class="email-success">✓ Done — we\'ll ping you after the next RBI MPC.</p>';
+      showToast('Subscribed!');
+    } else {
+      btn.textContent = originalText; btn.disabled = false;
+      showToast('Something went wrong. Try again.');
+    }
+  } catch {
+    btn.textContent = originalText; btn.disabled = false;
+    showToast('Network error. Try again.');
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   SHARE RESULT — Web Share API + clipboard fallback
+   ════════════════════════════════════════════════════════════ */
+function shareResult() {
+  const r = calcResult;
+  const verdict = r
+    ? (r.aWins
+        ? `My verdict: Prepay debt first. Debt-free by ${r.debtFreeDate}, saving ${fmt(r.saved)} in interest.`
+        : `My verdict: SIP first. Projected ₹${fmt(r.pathB.w12)} at 12% over ${state.horizon} years.`)
+    : 'Check out this free calculator — should you prepay your home loan or invest in SIP?';
+
+  const url  = window.location.href;
+  const text = verdict + '\n\nCalculate yours:';
+
+  if (navigator.share) {
+    navigator.share({ title: 'Settle or SIP', text, url }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(text + ' ' + url)
+      .then(() => showToast('Result copied to clipboard!'))
+      .catch(() => showToast('Copy manually: ' + url));
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   AFFILIATE TRACKING — console log (swap for analytics later)
+   ════════════════════════════════════════════════════════════ */
+function trackAffiliate(name) {
+  /* Add Google Analytics event here once GA is set up:
+     gtag('event', 'affiliate_click', { affiliate: name }); */
+  console.log('Affiliate click:', name);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   TOAST NOTIFICATION
+   ════════════════════════════════════════════════════════════ */
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2800);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   PROGRESS BAR — scroll driven
+   ════════════════════════════════════════════════════════════ */
+const progressBar = document.getElementById('scrollProgressBar');
+window.addEventListener('scroll', () => {
+  const progress = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
+  progressBar.style.transform = `scaleX(${Math.min(1, Math.max(0, progress))})`;
+}, { passive: true });
+</script>
+
+
+<!-- ═══════════════════════════════════════════════════
+     MOTION.JS — SPRING PHYSICS
+     ═══════════════════════════════════════════════════ -->
+<script type="module">
+import { animate, spring } from 'https://cdn.jsdelivr.net/npm/motion@latest/dist/motion.js';
+
+function springIn(el) {
+  if (!el) return;
+  animate(el, { opacity:[0,1], scale:[1.03,1], y:[10,0] },
+    { easing: spring({ stiffness:260, damping:22 }) });
+}
+
+/* Step entrance */
+const _goStep = window.goStep;
+window.goStep = function(n) {
+  _goStep(n);
+  requestAnimationFrame(() => springIn(document.getElementById('step'+n)));
+};
+
+/* Calculate → spring winner card */
+const _calculate = window.calculate;
+window.calculate = function() {
+  _calculate();
+  setTimeout(() => springIn(document.getElementById('winnerCard')), 180);
+};
+
+/* Tap physics on primary buttons */
+function addTap(el) {
+  if (!el) return;
+  el.addEventListener('pointerdown', () => animate(el, {scale:0.96}, {easing:spring({stiffness:400,damping:28})}));
+  const up = () => animate(el, {scale:1}, {easing:spring({stiffness:260,damping:22})});
+  ['pointerup','pointercancel','pointerleave'].forEach(ev => el.addEventListener(ev, up));
+}
+document.querySelectorAll('.btn-accent, .hero-cta, #dlBtn, #shareBtn').forEach(addTap);
+
+/* Step 1 entrance on load */
+springIn(document.getElementById('step1'));
+
+/* Fact cards staggered */
+const cardObs = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => animate(entry.target, {opacity:[0,1],y:[20,0]},
+        {easing:spring({stiffness:240,damping:24})}), i*55);
+      cardObs.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.fact-card').forEach(c => { c.style.opacity='0'; cardObs.observe(c); });
+</script>
+
+</body>
+</html>
