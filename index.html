@@ -66,7 +66,6 @@ html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; scroll-snap-type
 body {
   font-family: 'Inter', sans-serif;
   background: var(--bg);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M.5 40V.5H40' fill='none' stroke='%232DD4BF' stroke-opacity='0.05'/%3E%3C/svg%3E");
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;
@@ -358,7 +357,9 @@ body {
 .result-verdict-hero {
   text-align: center; padding: 60px clamp(20px,5vw,44px) 48px;
   border-bottom: 1px solid var(--border); margin-bottom: 24px;
+  box-shadow: 4px 4px 0 #000; transition: border-color 0.2s;
 }
+.result-verdict-hero:hover { border-color: rgba(45,212,191,0.25); }
 .result-path-badge {
   display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 2px;
   background: var(--accent); color: #030712; font-size: 10px; font-weight: 700;
@@ -372,12 +373,14 @@ body {
 
 .path-card {
   background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
-  padding: 20px; margin-bottom: 10px; box-shadow: 3px 3px 0 #000000;
+  padding: 20px; margin-bottom: 10px; box-shadow: 4px 4px 0 #000; transition: border-color 0.2s;
 }
+.path-card:hover { border-color: rgba(45,212,191,0.25); }
 .path-card.winner {
   background: var(--surface-win); border-color: rgba(45,212,191,0.22);
-  padding: 26px; box-shadow: 5px 5px 0 #000000;
+  padding: 26px; box-shadow: 4px 4px 0 #000;
 }
+.path-card.winner:hover { border-color: rgba(45,212,191,0.4); }
 .path-head {
   display: flex; align-items: center; gap: 8px; font-size: 10px; font-weight: 700;
   letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 16px;
@@ -415,19 +418,25 @@ body {
 .lump-box {
   background: var(--accent-dim); border: 1px solid rgba(45,212,191,0.14); border-radius: 2px;
   padding: 13px 15px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; color: var(--muted);
+  box-shadow: 4px 4px 0 #000; transition: border-color 0.2s;
 }
+.lump-box:hover { border-color: rgba(45,212,191,0.3); }
 .lump-box strong { color: var(--accent); }
 
 .disclaimer {
   background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 2px;
   padding: 12px 14px; font-size: 12px; color: var(--muted); line-height: 1.65; margin: 18px 0;
+  box-shadow: 4px 4px 0 #000; transition: border-color 0.2s;
 }
+.disclaimer:hover { border-color: rgba(45,212,191,0.25); }
 .disclaimer strong { color: var(--text); }
 
 .expandable-r {
   border: 1px solid var(--border); border-radius: 2px; overflow: hidden;
   margin-bottom: 16px; background: var(--surface);
+  box-shadow: 4px 4px 0 #000; transition: border-color 0.2s;
 }
+.expandable-r:hover { border-color: rgba(45,212,191,0.25); }
 .exp-header-r {
   display: flex; align-items: center; justify-content: space-between;
   padding: 14px 16px; font-size: 13px; font-weight: 600; color: var(--accent);
@@ -445,7 +454,7 @@ body {
   display: flex; align-items: center; justify-content: center; gap: 8px; padding: 13px;
   border-radius: 2px; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700;
   cursor: pointer; border: 1px solid var(--border); transition: border-color 0.2s, transform 0.1s;
-  background: var(--surface); color: var(--muted); box-shadow: 3px 3px 0 #000000;
+  background: var(--surface); color: var(--muted); box-shadow: 4px 4px 0 #000;
   will-change: transform;
 }
 .btn-act.dl { background: var(--accent-dim); color: var(--accent); border-color: rgba(45,212,191,0.15); }
@@ -456,8 +465,9 @@ body {
 /* EMAIL / SUBSCRIBE */
 .email-box {
   background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
-  padding: 20px; margin-bottom: 24px; box-shadow: 3px 3px 0 #000000;
+  padding: 20px; margin-bottom: 24px; box-shadow: 4px 4px 0 #000; transition: border-color 0.2s;
 }
+.email-box:hover { border-color: rgba(45,212,191,0.25); }
 .email-box h4 { font-size: 14px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 5px; color: var(--text); }
 .email-box p  { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
 .email-row    { display: flex; gap: 8px; }
